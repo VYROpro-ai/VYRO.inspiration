@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seesaw — Design Inspiration Directory</title>
+<meta name="description" content="The best web design inspiration. Browse the best of the internet, hand-picked and updated daily — by category.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand-row">
+        <a class="wordmark" href="#" data-cat="all">SEESAW <span class="spark">✦</span></a>
+        <span class="header-note">Design Inspiration</span>
+      </div>
+      <h1>The best web design inspiration.</h1>
+      <p class="tagline">Browse the best of the internet, hand-picked and updated daily.</p>
+      <div class="search-row">
+        <input id="search" type="search" placeholder="Search sites…  try “portfolio”, “AI”, “fintech”" autocomplete="off" aria-label="Search sites">
+        <span id="result-count" class="result-count"></span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="catbar" id="catbar" aria-label="Categories">
+    <div class="wrap catbar-inner" id="catbar-inner"><!-- categories render here --></div>
+  </nav>
+
+  <main class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" id="active-label">All sites</span>
+      <span class="count-pill" id="active-count"></span>
+    </div>
+    <div class="grid" id="grid"><!-- cards render here --></div>
+    <div class="empty" id="empty" hidden>
+      <p>No sites match that search in this category.</p>
+      <button id="clear-search" type="button">Clear search</button>
+    </div>
+    <p class="loading" id="loading">Loading the directory…</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><strong>SEESAW ✦</strong> — a category-wise directory of the sites featured on Seesaw.</p>
+      <p>Source &amp; credit: all titles, descriptions, preview images and links come from
+        <a href="https://www.seesaw.website/" target="_blank" rel="noopener">seesaw.website</a>.
+        Preview images are hosted by Seesaw (<code>media.seesaw.website</code>); clicking a card opens the live site in a new tab.</p>
+      <p class="fine">Directory snapshot: <span id="updated"></span> · Static site — no tracking, no build step.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
