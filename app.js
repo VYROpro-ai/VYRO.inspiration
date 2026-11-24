@@ -1,5 +1,6 @@
-/* Seesaw directory — loads data.json, renders category bar + searchable card grid.
-   Relative paths only; works from any static host. */
+/* VYRO.inspiration — loads data.json, renders hero collage wall,
+   bottom category nav + searchable card grid. Relative paths only;
+   works from any static host. */
 (function () {
   var grid = document.getElementById('grid');
   var catbarInner = document.getElementById('catbar-inner');
@@ -10,10 +11,61 @@
   var emptyBox = document.getElementById('empty');
   var loading = document.getElementById('loading');
   var updatedEl = document.getElementById('updated');
+  var hero = document.getElementById('hero');
+  var heroWall = document.getElementById('hero-wall');
+  var heroCta = document.getElementById('hero-cta');
+  var heroPause = document.getElementById('hero-pause');
 
   var data = null;
   var activeSlug = 'all';
   var query = '';
+  var motionPaused = false;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Baked-style hero wall: tiles from the directory's own preview images. */
+  function buildHeroWall(sites) {
+    if (!sites || !sites.length) return;
+    var picks = sites.filter(function (s) { return s.image; }).slice(0, 24);
+    var frag = document.createDocumentFragment();
+    picks.forEach(function (s, i) {
+      var t = document.createElement('div');
+      t.className = 'hero-tile' + (i % 7 === 2 ? ' wide' : '') + (i % 9 === 4 ? ' tall' : '');
+      var col = i % 6, row = Math.floor(i / 6);
+      var dx = (col - 2.5) / 2.5, dy = (row - 1.5) / 1.5;
+      t.style.setProperty('--r', (((i * 37) % 7) - 3) + 'deg');
+      t.style.setProperty('--tx', Math.round(dx * 420) + 'px');
+      t.style.setProperty('--ty', Math.round(dy * 320) + 'px');
+      var img = document.createElement('img');
+      img.src = s.image; img.alt = ''; img.loading = i < 12 ? 'eager' : 'lazy'; img.decoding = 'async';
+      img.onerror = function () { t.remove(); };
+      t.appendChild(img);
+      frag.appendChild(t);
+    });
+    heroWall.appendChild(frag);
+  }
+
+  function setHeroOpen(open) {
+    hero.classList.toggle('open', open);
+  }
+
+  window.addEventListener('scroll', function () {
+    setHeroOpen(window.scrollY > 40);
+  }, { passive: true });
+
+  heroCta.addEventListener('click', function () { setHeroOpen(true); });
+  heroPause.addEventListener('click', function () {
+    motionPaused = !motionPaused;
+    heroPause.textContent = motionPaused ? '▶ Resume motion' : '⏸ Pause motion';
+  });
+  hero.addEventListener('pointermove', function (e) {
+    if (motionPaused || reduceMotion || hero.classList.contains('open')) return;
+    var x = (e.clientX / window.innerWidth - 0.5) * 22;
+    var y = (e.clientY / window.innerHeight - 0.5) * 14;
+    heroWall.style.transform = 'translate3d(' + (-x) + 'px,' + (-y) + 'px,0)';
+  });
+  hero.addEventListener('pointerleave', function () {
+    heroWall.style.transform = '';
+  });
 
   function domainOf(url) {
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
@@ -83,7 +135,7 @@
         : '';
       a.innerHTML =
         '<span class="thumb">' + imgHtml +
-          '<span class="img-fallback" ' + (s.image ? 'hidden' : '') + '>SEESAW ✦</span>' +
+          '<span class="img-fallback" ' + (s.image ? 'hidden' : '') + '>VYRO ✦</span>' +
           '<span class="view-btn">View Website ↗</span>' +
         '</span>' +
         '<span class="card-body"><h3>' + esc(s.title) + '</h3>' +
@@ -104,13 +156,15 @@
     renderGrid();
     searchInput.focus();
   });
-  document.querySelector('.wordmark').addEventListener('click', function (e) {
-    e.preventDefault();
+  function goHome(e) {
+    if (e) e.preventDefault();
     activeSlug = 'all';
     renderCats();
     renderGrid();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  }
+  document.querySelector('.wordmark').addEventListener('click', goHome);
+  document.getElementById('footer-logo').addEventListener('click', goHome);
 
   fetch('data.json')
     .then(function (r) { if (!r.ok) throw new Error('data.json not found (' + r.status + ')'); return r.json(); })
@@ -118,6 +172,7 @@
       data = json;
       loading.hidden = true;
       updatedEl.textContent = data.updated || '';
+      buildHeroWall(data.categories && data.categories[0] ? data.categories[0].sites : []);
       renderCats();
       renderGrid();
     })

@@ -1,7 +1,6 @@
-# Seesaw — Design Inspiration Directory
+# VYRO.inspiration — Design Inspiration Directory
 
-A category-wise directory of every site featured on
-[Seesaw](https://www.seesaw.website/) — *"The best web design inspiration.
+A category-wise directory of every site featured on Seesaw — rebranded as **VYRO.inspiration** — *"The best web design inspiration.
 Browse the best of the internet, hand-picked and updated daily."*
 
 Static site, no build step, no tracking. Host it anywhere static files work
@@ -92,3 +91,10 @@ step — `index.html` + `data.json` + `style.css` + `app.js` is the whole site.
 All titles, descriptions, links and preview images come from
 https://www.seesaw.website/ (`sites.json` + the 13 `/category/<slug>` pages),
 snapshot 2026-11-24. The directory links back to Seesaw in its footer.
+
+## Rebrand (2026-11-24)
+
+- Brand is **VYRO.inspiration** (logo: black rounded-square V mark + VYRO.inspiration wordmark); no Seesaw branding on the site itself.
+- Categories live in a fixed **bottom navigation** pill bar; footer links point to VYRO on GitHub and this repo.
+- Hero is baked.design-style: a full-screen interactive collage wall of the directory's own preview images (pointer parallax, “Move to look around, scroll to open”), which flies open on scroll to reveal the headline + search panel. Note: baked.design has no globe element — the wall collage is its hero.
+- Fixed: image-fallback watermark no longer shows over loaded card images (`[hidden]` now hides it).

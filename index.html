@@ -3,31 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Seesaw — Design Inspiration Directory</title>
-<meta name="description" content="The best web design inspiration. Browse the best of the internet, hand-picked and updated daily — by category.">
+<title>VYRO.inspiration — Design Inspiration Directory</title>
+<meta name="description" content="VYRO.inspiration — the best web design inspiration. Browse the best of the internet, hand-picked and updated daily — by category.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <div class="brand-row">
-        <a class="wordmark" href="#" data-cat="all">SEESAW <span class="spark">✦</span></a>
-        <span class="header-note">Design Inspiration</span>
-      </div>
+  <nav class="top-nav" aria-label="Top navigation">
+    <a class="wordmark" href="#" aria-label="VYRO.inspiration — back to top">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="9" fill="#111"/><path d="M9 9.5 L16 23 L23 9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="23.5" r="1.6" fill="#FF5C38"/></svg></span>
+      <span class="logo-text"><strong>VYRO</strong><span class="logo-dot">.inspiration</span></span>
+    </a>
+    <span class="top-nav-links">
+      <a class="nav-pill" href="#grid" id="nav-browse">Browse</a>
+      <a class="nav-pill nav-pill-dark" href="https://github.com/VYROpro-ai" target="_blank" rel="noopener">VYRO on GitHub ↗</a>
+    </span>
+  </nav>
+
+  <header class="hero" id="hero">
+    <div class="hero-wall" id="hero-wall" aria-hidden="true"><!-- tiles render here --></div>
+    <button class="hero-cta" id="hero-cta" type="button">Browse inspiration ↓</button>
+    <span class="hero-hint">Move to look around, scroll to open</span>
+    <button class="hero-pause" id="hero-pause" type="button">⏸ Pause motion</button>
+    <div class="hero-panel">
+      <span class="hero-eyebrow" aria-hidden="true">✦</span>
       <h1>The best web design inspiration.</h1>
       <p class="tagline">Browse the best of the internet, hand-picked and updated daily.</p>
       <div class="search-row">
         <input id="search" type="search" placeholder="Search sites…  try “portfolio”, “AI”, “fintech”" autocomplete="off" aria-label="Search sites">
         <span id="result-count" class="result-count"></span>
       </div>
+      <a class="hero-browse" href="#grid">See all sites ↓</a>
     </div>
   </header>
 
-  <nav class="catbar" id="catbar" aria-label="Categories">
-    <div class="wrap catbar-inner" id="catbar-inner"><!-- categories render here --></div>
-  </nav>
-
-  <main class="wrap">
+  <main class="wrap" id="main">
     <div class="section-head">
       <span class="eyebrow" id="active-label">All sites</span>
       <span class="count-pill" id="active-count"></span>
@@ -40,13 +49,23 @@
     <p class="loading" id="loading">Loading the directory…</p>
   </main>
 
+  <nav class="bottom-nav" id="catbar" aria-label="Categories">
+    <div class="bottom-nav-inner" id="catbar-inner"><!-- categories render here --></div>
+  </nav>
+
   <footer class="site-footer">
     <div class="wrap">
-      <p><strong>SEESAW ✦</strong> — a category-wise directory of the sites featured on Seesaw.</p>
-      <p>Source &amp; credit: all titles, descriptions, preview images and links come from
-        <a href="https://www.seesaw.website/" target="_blank" rel="noopener">seesaw.website</a>.
-        Preview images are hosted by Seesaw (<code>media.seesaw.website</code>); clicking a card opens the live site in a new tab.</p>
-      <p class="fine">Directory snapshot: <span id="updated"></span> · Static site — no tracking, no build step.</p>
+      <a class="footer-logo" href="#" id="footer-logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="9" fill="#111"/><path d="M9 9.5 L16 23 L23 9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="23.5" r="1.6" fill="#FF5C38"/></svg></span>
+        <span class="logo-text"><strong>VYRO</strong><span class="logo-dot">.inspiration</span></span>
+      </a>
+      <p>The best web design inspiration — curated by VYRO.</p>
+      <p class="footer-links">
+        <a href="https://github.com/VYROpro-ai" target="_blank" rel="noopener">VYRO on GitHub</a>
+        <a href="https://github.com/VYROpro-ai/seesaw-directory" target="_blank" rel="noopener">This directory on GitHub</a>
+        <a href="#grid">Browse all sites</a>
+      </p>
+      <p class="fine">© 2026 VYRO.inspiration · Directory snapshot: <span id="updated"></span> · Static site — no tracking, no build step.</p>
     </div>
   </footer>
 
