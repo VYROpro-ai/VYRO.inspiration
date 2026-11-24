@@ -147,6 +147,20 @@
     grid.appendChild(frag);
   }
 
+  /* Fabric Button: the inflate bulge leans toward the cursor. */
+  grid.addEventListener('pointermove', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var card = t.closest('.card');
+    if (!card) return;
+    var btn = card.querySelector('.view-btn');
+    if (!btn) return;
+    var r = btn.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    btn.style.setProperty('--ox', Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)).toFixed(1) + '%');
+    btn.style.setProperty('--oy', Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100)).toFixed(1) + '%');
+  });
+
   searchInput.addEventListener('input', function () {
     query = searchInput.value.trim();
     if (navSearch) navSearch.value = searchInput.value;

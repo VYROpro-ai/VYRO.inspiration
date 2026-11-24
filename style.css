@@ -217,7 +217,7 @@ a { color: inherit; }
 .card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* Preview image + hover blur + View Website button */
-.thumb { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #EFEFEA; }
+.thumb { display: block; position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #EFEFEA; }
 .thumb img {
   display: block; width: 100%; height: 100%; object-fit: cover;
   transition: filter .35s ease, transform .45s ease;
@@ -226,18 +226,27 @@ a { color: inherit; }
   filter: blur(6px) brightness(.72) saturate(.9);
   transform: scale(1.05);
 }
+/* Fabric Button (dribbble 25552922) — plush inflate on hover.
+   Centring is done with inset:0 + margin:auto (no translate),
+   so the button always sits dead-centre; transform only inflates it. */
 .view-btn {
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, calc(-50% + 10px)) scale(.96);
+  position: absolute; inset: 0; margin: auto;
+  width: max-content; height: max-content;
   opacity: 0; pointer-events: none;
   background: var(--ink); color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
   font-size: 13.5px; font-weight: 700; letter-spacing: .01em;
   padding: 12px 22px; border-radius: 999px; white-space: nowrap;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .35);
-  transition: opacity .28s ease, transform .28s ease;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 -4px 8px rgba(0, 0, 0, .28);
+  transform: translateY(10px) scale(.85, .8);
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  transition: opacity .3s ease, transform .55s cubic-bezier(.34, 1.56, .64, 1), border-radius .55s cubic-bezier(.34, 1.56, .64, 1), box-shadow .55s ease;
 }
 .card:hover .view-btn, .card:focus-visible .view-btn, .card:focus-within .view-btn {
-  opacity: 1; transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transform: translateY(0) scale(1.07, 1.22);
+  border-radius: 48% 52% 55% 45% / 62% 44% 56% 38%;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, .45), inset 0 2px 0 rgba(255, 255, 255, .25), inset 0 -8px 16px rgba(0, 0, 0, .38);
 }
 .thumb .img-fallback {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
