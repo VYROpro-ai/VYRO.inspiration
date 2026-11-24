@@ -5,6 +5,7 @@
   var grid = document.getElementById('grid');
   var catbarInner = document.getElementById('catbar-inner');
   var searchInput = document.getElementById('search');
+  var navSearch = document.getElementById('nav-search');
   var resultCount = document.getElementById('result-count');
   var activeLabel = document.getElementById('active-label');
   var activeCount = document.getElementById('active-count');
@@ -148,10 +149,17 @@
 
   searchInput.addEventListener('input', function () {
     query = searchInput.value.trim();
+    if (navSearch) navSearch.value = searchInput.value;
+    renderGrid();
+  });
+  if (navSearch) navSearch.addEventListener('input', function () {
+    query = navSearch.value.trim();
+    searchInput.value = navSearch.value;
     renderGrid();
   });
   document.getElementById('clear-search').addEventListener('click', function () {
     searchInput.value = '';
+    if (navSearch) navSearch.value = '';
     query = '';
     renderGrid();
     searchInput.focus();
