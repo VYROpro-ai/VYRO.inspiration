@@ -238,8 +238,8 @@ a { color: inherit; }
   box-shadow: 0 12px 36px rgba(17, 17, 17, .12);
 }
 .bottom-nav-inner {
-  display: flex; gap: 8px; overflow-x: auto; padding: 9px 12px;
-  scrollbar-width: none;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+  padding: 9px 12px; scrollbar-width: none;
 }
 .bottom-nav-inner::-webkit-scrollbar { display: none; }
 .cat-btn {
