@@ -57,6 +57,7 @@ a { color: inherit; }
   font-size: 13.5px; font-weight: 600; text-decoration: none; color: var(--ink);
 }
 .nav-pill-dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+#nav-submit { margin-left: auto; }
 
 .nav-search {
   flex: 1 1 auto; min-width: 0; max-width: 440px; margin: 0 auto;
@@ -231,20 +232,29 @@ a { color: inherit; }
   transform: scale(1.05);
 }
 .card:hover .thumb::after, .card:focus-visible .thumb::after, .card:focus-within .thumb::after { opacity: 1; }
-/* Venom tendrils: gooey black strands reaching for the cursor. */
-.venom {
+/* Nexus Venom Button stage: one shared WebGL canvas + 2D fx canvas,
+   plus a separate hand canvas on top. Moved into the hovered card's
+   thumb by venom.js; pointer-events none so card clicks still work.
+   Stacking inside .thumb: image < white veil (z 1) < stage (z 2) <
+   label .view-btn (z 3) < hand canvas (z 4). */
+.venom-stage {
   position: absolute; inset: 0; z-index: 2;
-  width: 100%; height: 100%; pointer-events: none;
-  opacity: 0; transition: opacity .25s ease;
+  pointer-events: none;
 }
-.card:hover .venom, .card:focus-visible .venom, .card:focus-within .venom { opacity: 1; }
-.venom path, .venom circle { fill: none; stroke: #111; stroke-linecap: round; }
-.venom circle { fill: #111; stroke: none; }
-/* Venom Button (dribbble 27839721) — near-black gel pill, glossy top
-   highlight; on hover black symbiote tendrils reach for the cursor
-   (drawn by JS in the .venom svg) while the pill stays clean.
-   Centring is inset:0 + margin:auto (no translate), so the button
-   always sits dead-centre; transform only lifts it slightly. */
+.venom-stage canvas { display: block; width: 100%; height: 100%; }
+.venom-hand {
+  position: absolute; inset: 0; z-index: 4;
+  width: 100%; height: 100%; pointer-events: none;
+}
+/* While the live engine runs, the shader draws the pill — the CSS
+   background/gloss is hidden, the white label text stays visible. */
+.card.venom-live .view-btn { background: transparent; box-shadow: none; }
+.card.venom-live .view-btn::before, .card.venom-live .view-btn::after { display: none; }
+/* Venom Button (Nexus UI port) — near-black gel pill, glossy top
+   highlight. The live WebGL engine draws the pill, strands and glove;
+   this CSS pill is the fallback (no WebGL / reduced motion) and the
+   label the engine draws over. Centring is inset:0 + margin:auto
+   (no translate), so the button always sits dead-centre. */
 .view-btn {
   position: absolute; inset: 0; margin: auto; z-index: 3;
   width: max-content; height: max-content;
@@ -254,7 +264,6 @@ a { color: inherit; }
   padding: 12px 22px; border-radius: 999px; white-space: nowrap;
   box-shadow: 0 10px 28px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .25);
   transform: translateY(10px) scale(.9);
-  transform-origin: var(--ox, 50%) var(--oy, 50%);
   transition: opacity .3s ease, transform .45s cubic-bezier(.34, 1.4, .64, 1), box-shadow .45s ease;
 }
 .view-btn::before {

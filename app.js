@@ -111,7 +111,7 @@
   }
 
   function renderGrid() {
-    venom = null;
+    if (window.VenomStage) window.VenomStage.abort();
     var sites = currentSites();
     var cat = null;
     for (var i = 0; i < data.categories.length; i++) {
@@ -143,137 +143,32 @@
         '<span class="card-body"><h3>' + esc(s.title) + '</h3>' +
         '<p>' + esc(s.description || '') + '</p>' +
         '<span class="card-domain">' + esc(domainOf(s.link)) + ' ↗</span></span>';
-      if (!reduceMotion) {
-        var thumbEl = a.querySelector('.thumb');
-        if (thumbEl) thumbEl.appendChild(venomSvg());
-      }
       frag.appendChild(a);
     });
     grid.appendChild(frag);
   }
 
-  /* Venom tendrils (dribbble 27839721): gooey black strands from the
-     button edge that stretch toward the cursor with lag + wobble,
-     then retract elastically when the cursor leaves. */
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  var VENOM_W = [8, 5, 3, 6, 2.5];
-  var venom = null;
-  var venomRunning = false;
-
-  function venomSvg() {
-    var svg = document.createElementNS(SVGNS, 'svg');
-    svg.setAttribute('class', 'venom');
-    svg.setAttribute('viewBox', '0 0 100 62.5');
-    svg.setAttribute('preserveAspectRatio', 'none');
-    svg.setAttribute('aria-hidden', 'true');
-    var g = document.createElementNS(SVGNS, 'g');
-    g.setAttribute('filter', 'url(#venom-goo)');
-    var paths = [];
-    VENOM_W.forEach(function (w) {
-      var p = document.createElementNS(SVGNS, 'path');
-      p.setAttribute('stroke-width', w);
-      g.appendChild(p);
-      paths.push(p);
-    });
-    var blob = document.createElementNS(SVGNS, 'circle');
-    blob.setAttribute('r', '4');
-    g.appendChild(blob);
-    svg.appendChild(g);
-    svg._paths = paths;
-    svg._blob = blob;
-    return svg;
-  }
-
-  function venomStart(card, x, y) {
-    var thumb = card.querySelector('.thumb');
-    var btn = card.querySelector('.view-btn');
-    var svg = thumb && thumb.querySelector('.venom');
-    if (!thumb || !btn || !svg) return;
-    var tr = thumb.getBoundingClientRect();
-    var br = btn.getBoundingClientRect();
-    if (!tr.width || !tr.height || !br.width) return;
-    venom = {
-      svg: svg, paths: svg._paths, blob: svg._blob,
-      cx: (br.left - tr.left + br.width / 2) / tr.width * 100,
-      cy: (br.top - tr.top + br.height / 2) / tr.height * 62.5,
-      hw: br.width / 2 / tr.width * 100,
-      hh: br.height / 2 / tr.height * 62.5,
-      tx: (x - tr.left) / tr.width * 100,
-      ty: (y - tr.top) / tr.height * 62.5,
-      fx: (br.left - tr.left + br.width / 2) / tr.width * 100,
-      fy: (br.top - tr.top + br.height / 2) / tr.height * 62.5,
-      leaving: false
-    };
-    if (!venomRunning) { venomRunning = true; requestAnimationFrame(venomTick); }
-  }
-
-  function venomTick(now) {
-    if (!venom || !venom.svg.isConnected) { venom = null; venomRunning = false; return; }
-    var v = venom;
-    v.fx += (v.tx - v.fx) * 0.14;
-    v.fy += (v.ty - v.fy) * 0.14;
-    var dx = v.fx - v.cx, dy = v.fy - v.cy;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    var ang = Math.atan2(dy, dx);
-    var px = -Math.sin(ang), py = Math.cos(ang);
-    v.paths.forEach(function (p, i) {
-      var a = ang + (i - 2) * 0.26;
-      var sx = v.cx + Math.cos(a) * v.hw;
-      var sy = v.cy + Math.sin(a) * v.hh;
-      var spread = (i - 2) * 2.4;
-      var ex = v.fx + px * spread;
-      var ey = v.fy + py * spread;
-      var mx = (sx + ex) / 2 + px * Math.sin(now * 0.005 + i * 1.9) * 2.4;
-      var my = (sy + ey) / 2 + py * Math.cos(now * 0.004 + i * 1.3) * 2.4;
-      if (v.leaving) { ex = sx + (ex - sx) * 0.25; ey = sy + (ey - sy) * 0.25; }
-      p.setAttribute('d', 'M ' + sx.toFixed(1) + ' ' + sy.toFixed(1) +
-        ' Q ' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + ex.toFixed(1) + ' ' + ey.toFixed(1));
-    });
-    v.blob.setAttribute('cx', v.fx.toFixed(1));
-    v.blob.setAttribute('cy', v.fy.toFixed(1));
-    v.blob.setAttribute('r', v.leaving ? '2' : '4');
-    if (v.leaving && dist < 2) { venom = null; venomRunning = false; return; }
-    requestAnimationFrame(venomTick);
-  }
-
+  /* Nexus Venom Button: one shared WebGL stage, moved into the hovered
+     card's thumb. The engine draws the pill + strands + glove; the
+     label stays the HTML .view-btn text. */
   grid.addEventListener('pointerover', function (e) {
-    if (reduceMotion) return;
+    if (!window.VenomStage || !window.VenomStage.supported) return;
     var t = e.target;
     if (!t || !t.closest) return;
     var card = t.closest('.card');
     if (!card) return;
-    if (venom && venom.svg.isConnected && card.contains(venom.svg)) return;
-    venomStart(card, e.clientX, e.clientY);
+    var thumb = card.querySelector('.thumb');
+    var btn = card.querySelector('.view-btn');
+    if (!thumb || !btn) return;
+    window.VenomStage.attach(thumb, btn);
   });
   grid.addEventListener('pointerout', function (e) {
-    if (!venom) return;
+    if (!window.VenomStage) return;
     var t = e.target;
     if (!t || !t.closest) return;
     var card = t.closest('.card');
     if (!card || (e.relatedTarget && card.contains(e.relatedTarget))) return;
-    venom.tx = venom.cx; venom.ty = venom.cy; venom.leaving = true;
-  });
-
-  /* Button lean + Venom tendril target follow the cursor. */
-  grid.addEventListener('pointermove', function (e) {
-    var t = e.target;
-    if (!t || !t.closest) return;
-    var card = t.closest('.card');
-    if (!card) return;
-    var btn = card.querySelector('.view-btn');
-    if (!btn) return;
-    var r = btn.getBoundingClientRect();
-    if (!r.width || !r.height) return;
-    btn.style.setProperty('--ox', Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)).toFixed(1) + '%');
-    btn.style.setProperty('--oy', Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100)).toFixed(1) + '%');
-    if (venom && venom.svg.isConnected && card.contains(venom.svg)) {
-      var tr = card.querySelector('.thumb').getBoundingClientRect();
-      if (tr.width && tr.height) {
-        venom.tx = (e.clientX - tr.left) / tr.width * 100;
-        venom.ty = (e.clientY - tr.top) / tr.height * 62.5;
-        venom.leaving = false;
-      }
-    }
+    window.VenomStage.detach();
   });
 
   searchInput.addEventListener('input', function () {
