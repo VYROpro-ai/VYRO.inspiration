@@ -53,7 +53,10 @@
     setHeroOpen(window.scrollY > 40);
   }, { passive: true });
 
-  heroCta.addEventListener('click', function () { setHeroOpen(true); });
+  heroCta.addEventListener('click', function () {
+    setHeroOpen(true);
+    if (window.VenomStage) window.VenomStage.detach(); /* the CTA fades away under the pointer */
+  });
   heroPause.addEventListener('click', function () {
     motionPaused = !motionPaused;
     heroPause.textContent = motionPaused ? '▶ Resume motion' : '⏸ Pause motion';
@@ -93,6 +96,7 @@
   }
 
   function renderCats() {
+    if (window.VenomStage) window.VenomStage.abort(); /* buttons are rebuilt below */
     catbarInner.innerHTML = '';
     data.categories.forEach(function (cat) {
       var b = document.createElement('button');
@@ -170,6 +174,36 @@
     if (!card || (e.relatedTarget && card.contains(e.relatedTarget))) return;
     window.VenomStage.detach();
   });
+
+  /* Nexus Venom Button on every other button: the same shared stage,
+     hosted by the button's nearest unclipped ancestor (the stage grows
+     past the host's edges, so strands and glove are never clipped by
+     e.g. the category bar's horizontal scroller). */
+  function bindVenomHost(container, selector, host) {
+    if (!container || !host || !window.VenomStage || !window.VenomStage.supported) return;
+    container.addEventListener('pointerover', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest(selector);
+      if (!btn || !host.contains(btn)) return;
+      window.VenomStage.attachHost(host, btn);
+    });
+    container.addEventListener('pointerout', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest(selector);
+      if (!btn || (e.relatedTarget && btn.contains(e.relatedTarget))) return;
+      window.VenomStage.detach();
+    });
+  }
+  bindVenomHost(document.querySelector('.top-nav'), '#nav-submit, #nav-share', document.querySelector('.top-nav'));
+  bindVenomHost(hero, '#hero-cta, #hero-pause', hero);
+  /* "See all sites" lives inside the hero panel (z 6), so the stage is
+     hosted by the panel itself — a stage on .hero would paint under it */
+  bindVenomHost(document.querySelector('.hero-panel'), '.hero-browse', document.querySelector('.hero-panel'));
+  bindVenomHost(emptyBox, '#clear-search', emptyBox);
+  bindVenomHost(document.querySelector('.site-footer'), '.footer-links a', document.querySelector('.site-footer'));
+  bindVenomHost(catbarInner, '.cat-btn', document.getElementById('catbar'));
 
   searchInput.addEventListener('input', function () {
     query = searchInput.value.trim();

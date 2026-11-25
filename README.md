@@ -13,29 +13,29 @@ Static site, no build step, no tracking. Host it anywhere static files work
 | `index.html` | Page shell: header, search, sticky category bar, card grid, footer |
 | `style.css` | Baked.design-inspired light UI — off-white `#FAFAF7`, white 24px-radius cards, black pill buttons, small grey uppercase labels |
 | `app.js` | Loads `data.json`, renders categories + search + cards |
-| `data.json` | All data: 14 categories (All + 13), **912 distinct sites**, **1,188 category cards** |
+| `data.json` | All data: 14 categories (All + 13), **2,440 distinct sites**, **2,716 category cards** |
 | `_parts/` | Working files: the raw per-slice `sites-*.json` extracts from `sites.json` and per-category `cat-*.json` membership lists |
 
-## Counts (snapshot 2026-11-24)
+## Counts (snapshot 2026-11-25 — Seesaw + Saaspo + Landingfolio + SaaSLandingPage)
 
 | Category | Sites |
 |---|---|
-| All (distinct sites) | 912 |
-| Agency | 76 |
-| AI | 238 |
-| Crypto | 96 |
-| Design | 184 |
-| Design Tools | 36 |
-| Developer Tools | 102 |
-| E-Commerce | 44 |
-| Fintech | 104 |
-| Hardware | 59 |
-| Marketing | 31 |
-| Portfolios | 69 |
-| Productivity | 121 |
-| Social | 28 |
+| All (distinct sites) | 2,440 |
+| Agency | 85 |
+| AI | 412 |
+| Crypto | 139 |
+| Design | 206 |
+| Design Tools | 154 |
+| Developer Tools | 229 |
+| E-Commerce | 73 |
+| Fintech | 260 |
+| Hardware | 71 |
+| Marketing | 185 |
+| Portfolios | 74 |
+| Productivity | 759 |
+| Social | 69 |
 
-Total across the 13 categories: **1,188 cards** — sites appear in more than one
+Total across the 13 categories: **2,716 cards** — sites appear in more than one
 category, which is how Seesaw organises them.
 
 ### Count notes (honest shortfalls vs Seesaw's live counts)
@@ -91,6 +91,8 @@ step — `index.html` + `data.json` + `style.css` + `app.js` is the whole site.
 All titles, descriptions, links and preview images come from
 https://www.seesaw.website/ (`sites.json` + the 13 `/category/<slug>` pages),
 snapshot 2026-11-24. The directory links back to Seesaw in its footer.
+
+458 further sites were merged from Saaspo (2026-11-25), and 1,070 more from Landingfolio (https://www.landingfolio.com/) and SaaS Landing Page (https://saaslandingpage.com/) on 2026-11-25 — each verified live (or, for a small number of bot-guarded sites, confirmed via a 2025/2026 Wayback capture) before merging.
 
 ## Rebrand (2026-11-24)
 

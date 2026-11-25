@@ -16,11 +16,24 @@
  * Architecture for many cards: ONE shared stage (WebGL canvas + 2D fx
  * canvas) plus ONE separate hand canvas. The stage is moved into
  * whichever card's .thumb is hovered; the shader's pill rect (uPill)
- * is the hovered card's .view-btn rect measured against the thumb
+ * is the hovered card's .view-btn rect measured against the stage
  * every frame. The label stays the existing HTML .view-btn text
  * (white, above the stage canvases, below the hand canvas). The rAF
  * loop runs only while a card is hovered (plus the snap-out after the
  * pointer leaves, max ~1.2s), then stops.
+ *
+ * Host mode (attachHost): the same stage drives every other button on
+ * the page — nav Submit, hero CTAs, category pills, footer links. The
+ * stage is appended to the button's nearest unclipped ancestor (the
+ * host: .top-nav, .hero, .bottom-nav, .site-footer, .empty) and grown
+ * past the host's edges by room for the strands and glove, so it is
+ * never clipped by e.g. the category bar's horizontal scroller. The
+ * button itself gets .venom-live (its own background goes transparent,
+ * its label stays white on top); the stage's origin is always the
+ * stage's own rect, so scrolling and resizing are tracked for free.
+ * A button that disappears mid-hover (category switch, search clear,
+ * hero open) aborts the stage, and the loop also stops itself if the
+ * pointer is gone and nothing is happening.
  *
  * Scale: the original stage is ~420px tall with a ~520px pill; our
  * thumbs are ~360x225px and the button ~150x40px. Distances scale by
@@ -223,7 +236,7 @@ void main(){
 
   /* ---------- engine state ---------- */
   var S = {
-    thumb: null, btn: null, card: null,
+    host: null, btn: null, liveEl: null, hosted: false,
     running: false, raf: 0, prev: 0, t0: 0,
     detaching: false, detachStarted: 0,
     sense: SENSE0, reach: REACH0, release: RELEASE0,
@@ -303,9 +316,11 @@ void main(){
 
   /* ---------- geometry: pill rect, perimeter walk, nearest point ---------- */
   function measure() {
-    if (!S.thumb || !S.btn) return;
-    var a = S.thumb.getBoundingClientRect(), b = S.btn.getBoundingClientRect();
-    var k = S.thumb.offsetWidth ? a.width / S.thumb.offsetWidth : 1;
+    if (!S.host || !S.btn) return;
+    /* the stage is the coordinate origin in both modes: inset:0 of the
+       thumb for cards, or the padded box around the host otherwise */
+    var a = stageEl.getBoundingClientRect(), b = S.btn.getBoundingClientRect();
+    var k = stageEl.offsetWidth ? a.width / stageEl.offsetWidth : 1;
     pill.x = (b.left - a.left) / k; pill.y = (b.top - a.top) / k; pill.w = b.width / k; pill.h = b.height / k;
     pill.r = pill.h / 2;
     pill.ls = Math.max(0, pill.w - pill.h);
@@ -359,17 +374,31 @@ void main(){
   }
 
   function fit() {
-    if (!S.thumb) return;
-    var r = S.thumb.getBoundingClientRect();
+    if (!S.host) return;
     dpr = Math.min(2, window.devicePixelRatio || 1);
-    w = S.thumb.offsetWidth || r.width; h = S.thumb.offsetHeight || r.height;
+    var hostW = S.host.offsetWidth || S.host.getBoundingClientRect().width;
+    var hostH = S.host.offsetHeight || S.host.getBoundingClientRect().height;
+    if (S.hosted) {
+      /* the stage is the host box grown by enough room for the strands
+         and the glove to reach out past the host's edges */
+      measure(); /* pill width first, from the current geometry */
+      var pad = Math.ceil(S.sense) + 70;
+      stageEl.style.left = -pad + 'px'; stageEl.style.top = -pad + 'px';
+      stageEl.style.width = (hostW + pad * 2) + 'px'; stageEl.style.height = (hostH + pad * 2) + 'px';
+      hc.style.left = -pad + 'px'; hc.style.top = -pad + 'px';
+      hc.style.width = (hostW + pad * 2) + 'px'; hc.style.height = (hostH + pad * 2) + 'px';
+      w = hostW + pad * 2; h = hostH + pad * 2;
+      measure(); /* re-origin now the stage has moved */
+    } else {
+      w = hostW; h = hostH;
+      measure();
+    }
     var cs = [glc, fxc, hc];
     for (var i = 0; i < cs.length; i++) {
       cs[i].width = Math.round(w * dpr);
       cs[i].height = Math.round(h * dpr);
     }
     if (gl) gl.viewport(0, 0, glc.width, glc.height);
-    measure();
   }
 
   /* ---------- pointer tracking (window-wide, like the original) ---------- */
@@ -383,9 +412,9 @@ void main(){
   var lastClient = { x: -999, y: -999 };
 
   function place(e) {
-    if (!S.thumb) return;
-    var r = S.thumb.getBoundingClientRect();
-    var k = S.thumb.offsetWidth ? r.width / S.thumb.offsetWidth : 1;
+    if (!S.host) return;
+    var r = stageEl.getBoundingClientRect();
+    var k = stageEl.offsetWidth ? r.width / stageEl.offsetWidth : 1;
     ptr.x = (e.clientX - r.left) / k;
     ptr.y = (e.clientY - r.top) / k;
     ptr.inside = ptr.x >= 0 && ptr.y >= 0 && ptr.x <= w && ptr.y <= h;
@@ -523,18 +552,21 @@ void main(){
 
   /* ---------- per-frame draw ---------- */
   function draw(now) {
-    if (!S.thumb || !S.thumb.isConnected || !gl || !prog) { abort(); return; }
+    if (!S.host || !S.host.isConnected || !S.btn || !S.btn.isConnected || !gl || !prog) { abort(); return; }
     var dt = Math.max(1 / 240, Math.min(0.033, (now - S.prev) / 1000));
     S.prev = now;
     if (!w || !h) return;
     measure();
+    /* the button vanished mid-hover (category switch, search clear,
+       hero opened): nothing left to draw on */
+    if (!pill.w || !pill.h) { abort(); return; }
     var time = (now - S.t0) / 1000;
 
     /* a lifted finger keeps hold for a moment, then lets go */
     if (ptr.touch && !ptr.down && ptr.inside && now - ptr.upAt > LINGER) { ptr.inside = false; ptr.last = now; }
     var live = ptr.inside;
     hand = { x: ptr.x, y: ptr.touch ? ptr.y - fingerLift : ptr.y };
-    S.thumb.style.cursor = live ? 'none' : '';
+    S.host.style.cursor = live ? 'none' : '';
 
     /* distance is measured from the middle of the hand; over the
        button it counts as touching */
@@ -878,19 +910,28 @@ void main(){
     if (S.detaching) {
       var done = (mode === 'idle' && list.length === 0) || (now - S.detachStarted > 1200);
       if (done) finishDetach();
+    } else if (mode === 'idle' && list.length === 0 && !ptr.inside && now - S.t0 > 300) {
+      /* the pointer never arrived, or the button moved away from it
+         (scroll, click, tap): nothing left to do, stop the loop */
+      finishDetach();
     }
   }
 
+  function clearStage() {
+    if (stageEl.parentNode) stageEl.parentNode.removeChild(stageEl);
+    if (hc.parentNode) hc.parentNode.removeChild(hc);
+    stageEl.classList.remove('venom-hosted');
+    hc.classList.remove('venom-hosted');
+    stageEl.style.left = stageEl.style.top = stageEl.style.width = stageEl.style.height = '';
+    hc.style.left = hc.style.top = hc.style.width = hc.style.height = '';
+  }
+
   function finishDetach() {
-    var thumb = S.thumb, card = S.card;
-    if (thumb) {
-      if (stageEl.parentNode === thumb) thumb.removeChild(stageEl);
-      if (hc.parentNode === thumb) thumb.removeChild(hc);
-      thumb.style.cursor = '';
-    }
-    if (card) card.classList.remove('venom-live');
+    if (S.host) S.host.style.cursor = '';
+    if (S.liveEl) S.liveEl.classList.remove('venom-live');
+    clearStage();
     if (S.ro) { S.ro.disconnect(); S.ro = null; }
-    S.thumb = null; S.btn = null; S.card = null;
+    S.host = null; S.btn = null; S.liveEl = null; S.hosted = false;
     S.detaching = false;
     S.running = false;
     if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
@@ -898,26 +939,35 @@ void main(){
   }
 
   /* ---------- public API ---------- */
-  function attach(thumb, btn) {
-    if (!supported || !thumb || !btn) return false;
-    if (S.thumb === thumb && S.btn === btn) {
-      /* re-entering the same card while snapping out: cancel the snap-out */
+  /* Cards: the stage lives inside the hovered thumb (hosted = false).
+     Every other button: the stage lives in the button's nearest
+     unclipped ancestor, grown by room for the strands (hosted = true).
+     Either way the label stays the HTML button text, above the stage. */
+  function attach(host, btn, hosted) {
+    if (!supported || !host || !btn) return false;
+    if (S.host === host && S.btn === btn) {
+      /* re-entering the same button while snapping out: cancel the snap-out */
       S.detaching = false;
       return true;
     }
-    /* moving to another card: stop whatever was running, clean slate */
+    /* moving to another button: stop whatever was running, clean slate */
     abort();
-    S.thumb = thumb; S.btn = btn;
-    S.card = thumb.closest ? thumb.closest('.card') : null;
-    thumb.appendChild(stageEl);
-    thumb.appendChild(hc);
-    if (S.card) S.card.classList.add('venom-live');
+    S.host = host; S.btn = btn; S.hosted = !!hosted;
+    S.liveEl = S.hosted ? btn : (host.closest ? host.closest('.card') : null);
+    host.appendChild(stageEl);
+    host.appendChild(hc);
+    if (S.hosted) {
+      stageEl.classList.add('venom-hosted');
+      hc.classList.add('venom-hosted');
+    }
+    if (S.liveEl) S.liveEl.classList.add('venom-live');
     if (lastClient.x !== -999) place({ clientX: lastClient.x, clientY: lastClient.y });
     fit();
     if (!S.btn.getBoundingClientRect().width) { abort(); return false; }
     if (S.ro) S.ro.disconnect();
     S.ro = new ResizeObserver(function () { fit(); });
-    S.ro.observe(thumb);
+    S.ro.observe(host);
+    if (S.hosted) S.ro.observe(btn);
     if (!S.running) {
       S.running = true;
       S.prev = performance.now();
@@ -927,8 +977,10 @@ void main(){
     return true;
   }
 
+  function attachHost(host, btn) { return attach(host, btn, true); }
+
   function detach() {
-    if (!S.thumb || S.detaching) return;
+    if (!S.host || S.detaching) return;
     /* the mode machine snaps the strands from here; the loop keeps
        running until they are gone (or 1.2s max), then finishDetach
        removes the stage */
@@ -938,15 +990,11 @@ void main(){
   }
 
   function abort() {
-    var thumb = S.thumb, card = S.card;
-    if (thumb) {
-      if (stageEl.parentNode === thumb) thumb.removeChild(stageEl);
-      if (hc.parentNode === thumb) thumb.removeChild(hc);
-      thumb.style.cursor = '';
-    }
-    if (card) card.classList.remove('venom-live');
+    if (S.host) S.host.style.cursor = '';
+    if (S.liveEl) S.liveEl.classList.remove('venom-live');
+    clearStage();
     if (S.ro) { S.ro.disconnect(); S.ro = null; }
-    S.thumb = null; S.btn = null; S.card = null;
+    S.host = null; S.btn = null; S.liveEl = null; S.hosted = false;
     S.detaching = false;
     S.running = false;
     if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
@@ -965,6 +1013,7 @@ void main(){
 
   window.VenomStage = {
     attach: attach,
+    attachHost: attachHost,
     detach: detach,
     abort: abort,
     supported: supported

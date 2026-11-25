@@ -57,7 +57,7 @@ a { color: inherit; }
   font-size: 13.5px; font-weight: 600; text-decoration: none; color: var(--ink);
 }
 .nav-pill-dark { background: var(--ink); color: #fff; border-color: var(--ink); }
-#nav-submit { margin-left: auto; }
+.nav-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
 .nav-search {
   flex: 1 1 auto; min-width: 0; max-width: 440px; margin: 0 auto;
@@ -68,6 +68,77 @@ a { color: inherit; }
 }
 .nav-search::placeholder { color: var(--faint); }
 .nav-search:focus { border-color: var(--ink); }
+
+/* ---------- Nexus Stagger Menu: Share dropdown in the top nav ----------
+   White card menu, soft shadow, large radius, black text — the site's
+   own language. Items arrive one after another (per-item delay below,
+   0.04s + i * 0.04s, same as the original); one highlight span glides
+   between rows; the button label rolls to confirm a pick. */
+.share-wrap { position: relative; display: inline-flex; }
+#nav-share {
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; font: inherit; white-space: nowrap;
+}
+#nav-share:active { transform: scale(.95); }
+#nav-share:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.share-label { display: inline-grid; overflow: hidden; }
+.share-label-text, .share-flash {
+  grid-area: 1 / 1;
+  transition: transform .28s cubic-bezier(.22, 1, .36, 1), opacity .28s;
+}
+.share-label-text { display: inline-block; }
+.share-flash {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  transform: translateY(130%); opacity: 0;
+}
+#nav-share.flash .share-label-text { transform: translateY(-130%); opacity: 0; }
+#nav-share.flash .share-flash { transform: translateY(0); opacity: 1; }
+.share-chevron { flex: 0 0 auto; transition: transform .3s cubic-bezier(.22, 1, .36, 1); }
+.share-wrap.open #nav-share .share-chevron { transform: rotate(180deg); }
+.share-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
+  width: 220px; max-width: calc(100vw - 32px);
+  padding: 6px; border-radius: 18px;
+  background: rgba(255, 255, 255, .95);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .04), 0 24px 50px -18px rgba(0, 0, 0, .35);
+  opacity: 0; transform: scale(.6) translateY(-8px); filter: blur(8px);
+  transform-origin: calc(100% - 24px) 0;
+  transition: opacity .3s cubic-bezier(.22, 1, .36, 1), transform .3s cubic-bezier(.22, 1, .36, 1), filter .3s;
+  pointer-events: none;
+}
+.share-menu.open {
+  opacity: 1; transform: scale(1) translateY(0); filter: blur(0);
+  pointer-events: auto;
+}
+.share-menu.closing {
+  opacity: 0; transform: scale(.85) translateY(-6px); filter: blur(6px);
+  transition-duration: .16s; pointer-events: none;
+}
+.share-hl {
+  position: absolute; left: 6px; right: 6px; top: 6px; height: 40px; z-index: 0;
+  border-radius: 12px; background: #F0F0EB; opacity: 0;
+  transition: top .2s cubic-bezier(.22, 1, .36, 1), height .2s cubic-bezier(.22, 1, .36, 1), opacity .15s ease;
+  pointer-events: none;
+}
+.share-item {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; height: 40px; padding: 0 12px;
+  border: 0; border-radius: 12px; background: transparent; cursor: pointer;
+  font-size: 14px; font-weight: 500; text-align: left; color: var(--ink);
+  outline: none;
+  opacity: 0; transform: translateX(-10px); filter: blur(4px);
+  transition: opacity .3s cubic-bezier(.22, 1, .36, 1), transform .3s cubic-bezier(.22, 1, .36, 1), filter .3s;
+}
+.share-item svg { flex: 0 0 auto; }
+.share-menu.open .share-item { opacity: 1; transform: none; filter: blur(0); }
+.share-menu.open .share-item:nth-child(2) { transition-delay: .04s; }
+.share-menu.open .share-item:nth-child(3) { transition-delay: .08s; }
+.share-menu.open .share-item:nth-child(4) { transition-delay: .12s; }
+.share-menu.closing .share-item { transition-delay: 0s; }
+.share-item:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 /* ---------- Hero: collage wall, scroll to open ---------- */
 .hero {
@@ -159,9 +230,8 @@ a { color: inherit; }
 
 /* ---------- Bottom category navigation ---------- */
 .bottom-nav {
-  position: fixed; left: 50%; bottom: 16px; z-index: 30;
-  transform: translateX(-50%);
-  width: min(1240px, calc(100% - 32px));
+  position: fixed; left: 0; right: 0; bottom: 16px; z-index: 30;
+  width: min(1240px, calc(100% - 32px)); margin: 0 auto;
   background: rgba(255, 255, 255, .94);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border); border-radius: 999px;
@@ -241,6 +311,21 @@ a { color: inherit; }
   position: absolute; inset: 0; z-index: 2;
   pointer-events: none;
 }
+.venom-stage.venom-hosted, .venom-hand.venom-hosted { inset: auto; } /* inline geometry from venom.js */
+/* While the live engine runs on a host-mode button, the shader draws
+   the pill — hide the button's own background/gloss, keep its label
+   (white, above the stage at z 2, below the glove at z 4). */
+#nav-submit.venom-live, #nav-share.venom-live, .cat-btn.venom-live, .footer-links a.venom-live,
+#clear-search.venom-live {
+  position: relative; z-index: 3;
+  background: transparent; border-color: transparent; box-shadow: none; color: #fff;
+}
+.hero-cta.venom-live, .hero-pause.venom-live {
+  z-index: 3;
+  background: transparent; border-color: transparent; box-shadow: none; color: #fff;
+}
+.hero-browse.venom-live { position: relative; z-index: 3; color: #fff; border-bottom-color: transparent; }
+.cat-btn.venom-live .n { background: rgba(255, 255, 255, .18); color: #fff; }
 .venom-stage canvas { display: block; width: 100%; height: 100%; }
 .venom-hand {
   position: absolute; inset: 0; z-index: 4;
@@ -301,13 +386,13 @@ a { color: inherit; }
 }
 
 /* ---------- Empty / loading / footer ---------- */
-.empty { text-align: center; padding: 64px 0; color: var(--muted); }
+.empty { position: relative; text-align: center; padding: 64px 0; color: var(--muted); }
 .empty button {
   margin-top: 8px; padding: 11px 22px; border-radius: 999px; cursor: pointer;
   background: var(--ink); color: #fff; border: 0; font-size: 14px; font-weight: 700;
 }
 .loading { text-align: center; color: var(--faint); padding: 48px 0; font-size: 14px; }
-.site-footer { border-top: 1px solid var(--border); margin-top: 72px; padding: 40px 0 56px; }
+.site-footer { position: relative; border-top: 1px solid var(--border); margin-top: 72px; padding: 40px 0 56px; }
 .footer-logo {
   display: inline-flex; align-items: center; gap: 10px;
   text-decoration: none; color: var(--ink); margin-bottom: 14px;
@@ -326,9 +411,20 @@ a { color: inherit; }
   .hero-panel { padding: 28px 22px 24px; }
   .hero-pause { display: none; }
   .nav-search { display: none; }
+  .top-nav { gap: 8px; padding: 6px 8px 6px 10px; }
+  .logo-text { font-size: 15px; }
+  #nav-share, #nav-submit { padding: 8px 12px; font-size: 12.5px; }
+  .share-menu { width: min(220px, calc(100vw - 32px)); }
+  .cat-btn { padding: 8px 12px; font-size: 12.5px; }
+  .cat-btn .n { display: none; }
   .grid { gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   body { padding-bottom: 88px; }
 }
+@media (max-width: 480px) {
+  /* keep logo + Share + Submit on one line: shorten the wordmark */
+  .logo-dot { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .hero-tile, .hero-panel, .hero-cta { transition: none; }
+  .share-menu, .share-item, .share-chevron, .share-label-text, .share-flash { transition: none !important; }
 }
