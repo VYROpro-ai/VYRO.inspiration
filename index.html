@@ -5,9 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VYRO.inspiration — Design Inspiration Directory</title>
 <meta name="description" content="VYRO.inspiration — the best web design inspiration. Browse the best of the internet, hand-picked and updated daily — by category.">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
+  <!-- Venom goo filter (shared by every card's tendril svg) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="venom-goo" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="blur"/>
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/>
+      </filter>
+    </defs>
+  </svg>
   <nav class="top-nav" aria-label="Top navigation">
     <a class="wordmark" href="#" aria-label="VYRO.inspiration — back to top">
       <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="9" fill="#111"/><path d="M9 9.5 L16 23 L23 9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="23.5" r="1.6" fill="#FF5C38"/></svg></span>
@@ -69,6 +78,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

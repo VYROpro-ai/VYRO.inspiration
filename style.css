@@ -29,20 +29,19 @@ body {
 .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
 a { color: inherit; }
 
-/* ---------- Floating top nav (baked-style pills) ---------- */
+/* ---------- Floating top nav: ONE pill bar (image rows style) ---------- */
 .top-nav {
-  position: fixed; top: 14px; left: 0; right: 0; z-index: 40;
-  display: flex; align-items: center; justify-content: space-between;
-  max-width: 1240px; margin: 0 auto; padding: 0 24px;
-  pointer-events: none;
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: 12px;
+  width: min(1240px, calc(100% - 32px));
+  padding: 8px 10px 8px 12px;
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid var(--border); border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(17, 17, 17, .10);
 }
-.top-nav > * { pointer-events: auto; }
 .wordmark {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 7px 16px 7px 8px; border-radius: 999px;
-  background: rgba(255, 255, 255, .9);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto;
+  padding: 2px 6px 2px 2px;
   text-decoration: none; color: var(--ink);
 }
 .logo-mark { display: inline-flex; line-height: 0; }
@@ -50,7 +49,7 @@ a { color: inherit; }
 .logo-text { font-size: 17px; letter-spacing: -.01em; }
 .logo-text strong { font-weight: 800; letter-spacing: .04em; }
 .logo-dot { font-weight: 500; color: var(--muted); }
-.top-nav-links { display: flex; gap: 8px; align-items: center; }
+.top-nav-links { display: flex; gap: 8px; align-items: center; flex: 1; min-width: 0; }
 .nav-pill {
   display: inline-block; padding: 10px 18px; border-radius: 999px;
   background: rgba(255, 255, 255, .9); border: 1px solid var(--border);
@@ -60,9 +59,9 @@ a { color: inherit; }
 .nav-pill-dark { background: var(--ink); color: #fff; border-color: var(--ink); }
 
 .nav-search {
-  width: 210px; padding: 10px 18px; border-radius: 999px;
-  background: rgba(255, 255, 255, .92); border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  flex: 1 1 auto; min-width: 0; max-width: 440px; margin: 0 auto;
+  padding: 10px 18px; border-radius: 999px;
+  background: #F0F0EB; border: 0; box-shadow: none;
   font-size: 13.5px; font-weight: 500; color: var(--ink); outline: none;
   -webkit-appearance: none; appearance: none;
 }
@@ -216,37 +215,60 @@ a { color: inherit; }
 .card:hover, .card:focus-visible { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
 .card:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-/* Preview image + hover blur + View Website button */
+/* Preview image + hover white-grey blur + View Website button */
 .thumb { display: block; position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #EFEFEA; }
 .thumb img {
   display: block; width: 100%; height: 100%; object-fit: cover;
   transition: filter .35s ease, transform .45s ease;
 }
+.thumb::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: rgba(255, 255, 255, .42);
+  opacity: 0; transition: opacity .35s ease; pointer-events: none;
+}
 .card:hover .thumb img, .card:focus-visible .thumb img {
-  filter: blur(6px) brightness(.72) saturate(.9);
+  filter: blur(8px) brightness(1.18) saturate(.5) grayscale(.25);
   transform: scale(1.05);
 }
-/* Fabric Button (dribbble 25552922) — plush inflate on hover.
-   Centring is done with inset:0 + margin:auto (no translate),
-   so the button always sits dead-centre; transform only inflates it. */
+.card:hover .thumb::after, .card:focus-visible .thumb::after, .card:focus-within .thumb::after { opacity: 1; }
+/* Venom tendrils: gooey black strands reaching for the cursor. */
+.venom {
+  position: absolute; inset: 0; z-index: 2;
+  width: 100%; height: 100%; pointer-events: none;
+  opacity: 0; transition: opacity .25s ease;
+}
+.card:hover .venom, .card:focus-visible .venom, .card:focus-within .venom { opacity: 1; }
+.venom path, .venom circle { fill: none; stroke: #111; stroke-linecap: round; }
+.venom circle { fill: #111; stroke: none; }
+/* Venom Button (dribbble 27839721) — near-black gel pill, glossy top
+   highlight; on hover black symbiote tendrils reach for the cursor
+   (drawn by JS in the .venom svg) while the pill stays clean.
+   Centring is inset:0 + margin:auto (no translate), so the button
+   always sits dead-centre; transform only lifts it slightly. */
 .view-btn {
-  position: absolute; inset: 0; margin: auto;
+  position: absolute; inset: 0; margin: auto; z-index: 3;
   width: max-content; height: max-content;
   opacity: 0; pointer-events: none;
-  background: var(--ink); color: #fff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  background: #040404; color: #fff;
   font-size: 13.5px; font-weight: 700; letter-spacing: .01em;
   padding: 12px 22px; border-radius: 999px; white-space: nowrap;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 -4px 8px rgba(0, 0, 0, .28);
-  transform: translateY(10px) scale(.85, .8);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .25);
+  transform: translateY(10px) scale(.9);
   transform-origin: var(--ox, 50%) var(--oy, 50%);
-  transition: opacity .3s ease, transform .55s cubic-bezier(.34, 1.56, .64, 1), border-radius .55s cubic-bezier(.34, 1.56, .64, 1), box-shadow .55s ease;
+  transition: opacity .3s ease, transform .45s cubic-bezier(.34, 1.4, .64, 1), box-shadow .45s ease;
+}
+.view-btn::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(130% 100% at 50% -25%, rgba(255, 255, 255, .95), rgba(255, 255, 255, .28) 48%, rgba(255, 255, 255, 0) 68%);
+}
+.view-btn::after {
+  content: ""; position: absolute; left: 12%; right: 12%; bottom: 0; height: 45%; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(0deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0));
 }
 .card:hover .view-btn, .card:focus-visible .view-btn, .card:focus-within .view-btn {
   opacity: 1;
-  transform: translateY(0) scale(1.07, 1.22);
-  border-radius: 48% 52% 55% 45% / 62% 44% 56% 38%;
-  box-shadow: 0 20px 46px rgba(0, 0, 0, .45), inset 0 2px 0 rgba(255, 255, 255, .25), inset 0 -8px 16px rgba(0, 0, 0, .38);
+  transform: translateY(0) scale(1.04);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
 }
 .thumb .img-fallback {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -254,10 +276,13 @@ a { color: inherit; }
   color: var(--faint);
 }
 .thumb .img-fallback[hidden] { display: none; }
-.card-body { padding: 18px 20px 20px; }
-.card-body h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+/* Card text: even spacing, domain pinned to the bottom of every card. */
+.card { display: flex; flex-direction: column; }
+.card-body { display: flex; flex-direction: column; flex: 1; padding: 18px 20px 20px; }
+.card-body h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; line-height: 1.35; }
 .card-body p {
-  margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted);
+  margin: 6px 0 0; flex: 1; min-height: 3em;
+  font-size: 14px; line-height: 1.5; color: var(--muted);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .card-domain {
